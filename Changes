@@ -1,0 +1,6 @@
+Revision history for Perl extension SOAP::ISIWoK3.
+
+0.01  Mon Feb 18 15:22:07 2013
+	- original version; created by h2xs 1.23 with options
+		-n SOAP::ISIWoK3 -A -X -b 5.8.0 -c --skip-exporter --skip-autoloader
+
