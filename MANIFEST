@@ -2,5 +2,6 @@ Changes
 Makefile.PL
 MANIFEST
 README
-t/SOAP-ISIWoK3.t
-lib/SOAP/ISIWoK3.pm
+t/SOAP-ISIWoK.t
+lib/SOAP/ISIWoK.pm
+lib/SOAP/ISIWoK/Lite.pm

@@ -3,10 +3,12 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    NAME              => 'SOAP::ISIWoK3',
-    VERSION_FROM      => 'lib/SOAP/ISIWoK3.pm', # finds $VERSION
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
+    NAME              => 'SOAP::ISIWoK',
+    VERSION_FROM      => 'lib/SOAP/ISIWoK.pm', # finds $VERSION
+    PREREQ_PM         => {
+		'SOAP::Lite' => 0.714,
+	}, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/SOAP/ISIWoK3.pm', # retrieve abstract from module
-       AUTHOR         => 'A. U. Thor <tdb2@>') : ()),
+      (ABSTRACT_FROM  => 'lib/SOAP/ISIWoK.pm', # retrieve abstract from module
+       AUTHOR         => 'Tim Brody <tdb2@ecs.soton.ac.uk>') : ()),
 );
