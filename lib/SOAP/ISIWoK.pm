@@ -1,6 +1,8 @@
 package SOAP::ISIWoK;
 
 use SOAP::Lite;
+use HTTP::Cookies;
+use MIME::Base64;
 #use SOAP::Lite +'trace';
 
 use 5.008000;
@@ -9,7 +11,7 @@ use warnings;
 
 our @ISA = qw();
 
-our $VERSION = '0.01';
+our $VERSION = '3.00';
 
 use constant {
 	AUTHENTICATE_ENDPOINT => 'http://search.webofknowledge.com/esti/wokmws/ws/WOKMWSAuthenticate',
@@ -45,6 +47,16 @@ SOAP::ISIWoK - interogate the ISI WoS database
 
 =head1 DESCRIPTION
 
+Search and retrieve records from the Thomson Reuters ISI Web of Knowledge
+database.
+
+This module is NOT backwards compatible with SOAP::ISIWoK 1.xx (deprecated WoK
+API). Significant changes:
+
+  - you must now authenticate with WoK to get a session id
+  - methods now return SOAP::Lite objects, use your favourite XML parser to
+	parse $som->result->{records} or
+  - throw an error on $som->fault
 
 =head2 Editions
 
@@ -339,6 +351,7 @@ sub new
 {
 	my ($class, %self) = @_;
 
+	$self{cookie_jar} ||= HTTP::Cookies->new(ignore_discard => 1);
 	$self{endpoint} ||= WOKSEARCH_ENDPOINT;
 	$self{service_type} ||= WOKSEARCH_SERVICE_TYPE;
 	$self{database} ||= 'WOK';
@@ -351,7 +364,7 @@ sub new
 
 sub DESTROY
 {
-	shift->disconnect;
+	shift->closeSession;
 }
 
 # this suppreses the usual xsi:nil="true" attribute, which WoS rejects
@@ -362,7 +375,7 @@ sub SOAP::Serializer::as_nonil
 	return [ $name, $attr, $value ];
 }
 
-=item $som = $wos->authenticate()
+=item $som = $wos->authenticate([$username, $password])
 
 	die $som->faultstring if $som->fault;
 	print "Session ID: ".$som->result;
@@ -373,11 +386,20 @@ Get a WoS session ID.
 
 sub authenticate
 {
-	my ($self) = @_;
+	my ($self, $username, $password) = @_;
 
 	my $soap = SOAP::Lite->new(
 		proxy => AUTHENTICATE_ENDPOINT,
 	);
+
+	$soap->transport->cookie_jar($self->{cookie_jar});
+
+	if (defined $username) {
+		$password = '' if !defined $password;
+		$soap->transport->http_request->header(
+			Authorization => "Basic ".MIME::Base64::encode_base64("$username:$password")
+		);
+	}
 
 	my $som = $soap->call( SOAP::Data->new(
 			type => 'nonil', # custom type
@@ -391,13 +413,13 @@ sub authenticate
 	return $som;
 }
 
-=item $som = $wos->disconnect()
+=item $som = $wos->closeSession()
 
 Explicitly close the session with WoS. Otherwise is called when this object goes out of scope.
 
 =cut
 
-sub disconnect
+sub closeSession
 {
 	my ($self) = @_;
 
@@ -407,11 +429,7 @@ sub disconnect
 		proxy => AUTHENTICATE_ENDPOINT,
 	);
 
-	my $cookie = sprintf("SID=\"%s\";",
-			$self->{sid}
-		);
-
-	$soap->transport->http_request->header(Cookie => $cookie);
+	$soap->transport->cookie_jar($self->{cookie_jar});
 
 	my $som = $soap->call( SOAP::Data->new(
 			type => 'nonil', # custom type
@@ -477,11 +495,7 @@ sub soap
 		autotype => 0,
 	);
 
-	my $cookie = sprintf("SID=\"%s\";",
-			$self->{sid}
-		);
-
-	$soap->transport->http_request->header(Cookie => $cookie);
+	$soap->transport->cookie_jar($self->{cookie_jar});
 
 	return $soap;
 }
