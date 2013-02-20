@@ -447,13 +447,13 @@ sub _retrieveParameters
 {
 	my ($self, %opts) = @_;
 
-	$opts{offset} = 1 if !defined $opts{offset};
+	$opts{offset} = 0 if !defined $opts{offset};
 	$opts{max} = 10 if !defined $opts{max};
 	$opts{fields} = [] if !exists $opts{fields};
 	$opts{options} = {} if !exists $opts{options};
 
 	my @rparams = (
-		SOAP::Data->name( firstRecord => $opts{offset} ),
+		SOAP::Data->name( firstRecord => $opts{offset}+1 ),
 		SOAP::Data->name( count => $opts{max} ),
 	);
 
@@ -690,7 +690,7 @@ Options:
 
 =item end - YYYY-MM-DD
 
-=item offset = 1
+=item offset = 0
 
 =item max = 10
 
@@ -762,8 +762,8 @@ sub _fix_records
 
 	# <REC r_id_disclaimer=""> attribute is sometimes repeated, so lets fix
 	# that for the consuming user
-	if (exists $som->result->{records}) {
-		$som->result->{records} =~ s/r_id_disclaimer="[^"]+"//;
+	if (defined $som->result && exists $som->result->{records}) {
+		$som->result->{records} =~ s/r_id_disclaimer="[^"]+"//g;
 	}
 
 	return $som;
