@@ -447,8 +447,8 @@ sub _retrieveParameters
 {
 	my ($self, %opts) = @_;
 
-	$opts{offset} = 1 if !exists $opts{offset};
-	$opts{max} = 10 if !exists $opts{max};
+	$opts{offset} = 1 if !defined $opts{offset};
+	$opts{max} = 10 if !defined $opts{max};
 	$opts{fields} = [] if !exists $opts{fields};
 	$opts{options} = {} if !exists $opts{options};
 
@@ -523,7 +523,7 @@ sub citedReferences
 		SOAP::Data->name(retrieveParameters => \SOAP::Data->value($self->_retrieveParameters(%opts))),
 	);
 
-	return $som;
+	return _fix_records($som);
 }
 
 =item $som = $wos->citedReferencesRetrieve($queryId [, OPTIONS ])
@@ -547,7 +547,7 @@ sub citedReferencesRetrieve
 		SOAP::Data->name(retrieveParameters => \SOAP::Data->value($self->_retrieveParameters(%opts))),
 	);
 
-	return $som;
+	return _fix_records($som);
 }
 
 sub _related
@@ -591,7 +591,7 @@ sub _related
 		SOAP::Data->name(retrieveParameters => \SOAP::Data->value($self->_retrieveParameters(%opts))),
 	);
 
-	return $som;
+	return _fix_records($som);
 }
 
 =item $som = $wos->citingArticles($uid [, OPTIONS ])
@@ -639,7 +639,7 @@ sub retrieve
 		SOAP::Data->name(retrieveParameters => \SOAP::Data->value($self->_retrieveParameters(%opts))),
 	);
 
-	return $som;
+	return _fix_records($som);
 }
 
 =item $som = $wos->retrieveById(UIDs [, OPTIONS])
@@ -677,7 +677,7 @@ sub retrieveById
 		SOAP::Data->name(retrieveParameters => \SOAP::Data->value($self->_retrieveParameters(%opts))),
 	);
 
-	return $som;
+	return _fix_records($som);
 }
 
 =item $som = $wos->search($query [, OPTIONS])
@@ -752,6 +752,19 @@ sub search
 		SOAP::Data->name(queryParameters => \SOAP::Data->value(@qparams)),
 		SOAP::Data->name(retrieveParameters => \SOAP::Data->value($self->_retrieveParameters(%opts))),
 	);
+
+	return _fix_records($som);
+}
+
+sub _fix_records
+{
+	my ($som) = @_;
+
+	# <REC r_id_disclaimer=""> attribute is sometimes repeated, so lets fix
+	# that for the consuming user
+	if (exists $som->result->{records}) {
+		$som->result->{records} =~ s/r_id_disclaimer="[^"]+"//;
+	}
 
 	return $som;
 }
