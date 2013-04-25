@@ -39,7 +39,7 @@ GetOptions(\%opts,
 pod2usage(1) if $opts{help};
 
 my $wos = $opts{lite} ?
-	SOAP::ISIWoK::Lite :
+	SOAP::ISIWoK::Lite->new :
 	SOAP::ISIWoK->new;
 
 print STDERR "Authenticating ...\n";
