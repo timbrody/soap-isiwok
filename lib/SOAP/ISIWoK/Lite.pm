@@ -8,8 +8,8 @@ sub new
 {
 	my ($class, %self) = @_;
 
-	$self{endpoint} ||= SOAP::ISIWoK::WOKSEARCH_ENDPOINT;
-	$self{service_type} ||= SOAP::ISIWoK::WORKSEARCH_SERVICE_TYPE;
+	$self{endpoint} ||= SOAP::ISIWoK::WOKSEARCH_LITE_ENDPOINT;
+	$self{service_type} ||= SOAP::ISIWoK::WORKSEARCH_LITE_SERVICE_TYPE;
 
 	return $class->SUPER::new(%self);
 }

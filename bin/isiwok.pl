@@ -19,8 +19,28 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 use SOAP::ISIWoK v3.00;
+use SOAP::ISIWoK::Lite;
+use Getopt::Long;
+use Pod::Usage;
 
-my $wos = SOAP::ISIWoK->new;
+my %opts = (
+	fields => [],
+	offset => 0,
+	max => 5,
+);
+GetOptions(\%opts,
+	'help',
+	'offset=i',
+	'max=i',
+	'fields=s',
+	'lite',
+) or pod2usage(1);
+
+pod2usage(1) if $opts{help};
+
+my $wos = $opts{lite} ?
+	SOAP::ISIWoK::Lite :
+	SOAP::ISIWoK->new;
 
 print STDERR "Authenticating ...\n";
 
@@ -30,10 +50,7 @@ print STDERR "Enter a search query:\n";
 
 while(<>)
 {
-	my $som = $wos->search($_,
-		max => 5,
-#		fields => [qw( email_addr )],
-	);
+	my $som = $wos->search($_,%opts);
 	if ($som->fault) {
 		warn $som->faultstring;
 	}
